@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+<head><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>旅游學習管理系統</title>
+<style>
+    body { font-family: sans-serif; margin: 0; padding: 0; line-height: 1.6; background-color: #f4f4f4; }
+    header {
+      background-color: #005aa7;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    main {
+      max-width: 960px;
+      margin: auto;
+      background-color: white;
+      padding: 20px;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    section {
+      margin-bottom: 20px;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      background-color: #333;
+      color: white;
+    }
+    @media (max-width: 600px) {
+      main { padding: 10px; }
+    }
+  </style>
+</head></head>
+<body><header>
+<h1>旅游學習管理系統</h1>
+</header>
+<h1>測驗結果</h1>
+<div id="scoreBoard"></div>
+<div id="wrongAnswers"></div>
+<button onclick="retry()">全部重做</button>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdGb9s-Vx2oPC_WSpYNBVjEe5SY8rxAZQ",
+      authDomain: "tourbase-3e55f.firebaseapp.com",
+      projectId: "tourbase-3e55f"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const result = JSON.parse(localStorage.getItem("quizResult"));
+    const score = result.score;
+    const total = result.total;
+    const wrongList = result.wrongList;
+    const collection = result.collection;
+
+    document.getElementById("scoreBoard").innerHTML = `
+      <h2>得分：${score} / ${total}</h2>
+      <p>題庫：${collection}</p>
+    `;
+
+    const box = document.getElementById("wrongAnswers");
+    if (wrongList.length === 0) {
+      box.innerHTML = "<p>恭喜，全對！🎉</p>";
+    } else {
+      box.innerHTML = "<h3>錯題列表：</h3>";
+      wrongList.forEach(w => {
+        box.innerHTML += `<p>題號：${w.id}，你選：${w.selected}，正解：${w.correct}</p>`;
+      });
+    }
+
+    function retry() {
+      window.location.href = "113導遊執業實務_quiz.html";
+    }
+
+    // 儲存成績到 Firestore
+    auth.onAuthStateChanged(user => {
+      if (!user) return;
+      db.collection("results").add({
+        userId: user.uid,
+        collection,
+        score,
+        total,
+        timestamp: new Date().toISOString(),
+        wrongAnswers: wrongList
+      })
+      .then(() => console.log("✅ 成績已儲存"))
+      .catch(err => console.error("❌ 儲存失敗", err));
+    });
+  </script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="header.js"></script>
+</body>
+</html>

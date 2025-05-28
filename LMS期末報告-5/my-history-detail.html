@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>我的歷次測驗詳情</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f2f2f2; }
+    h1 { color: #005aa7; }
+    .record { background: white; margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    .record h2 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 8px; border: 1px solid #ccc; text-align: left; }
+    th { background-color: #eee; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdGb9s-Vx2oPC_WSpYNBVjEe5SY8rxAZQ",
+      authDomain: "tourbase-3e55f.firebaseapp.com",
+      projectId: "tourbase-3e55f"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</head>
+<body>
+  <h1>我的歷次測驗詳情</h1>
+  <div id="history"></div>
+
+  <script>
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("請先登入才能查看紀錄");
+        window.location.href = "login/login.html";
+        return;
+      }
+
+      db.collection("results")
+        .where("userId", "==", user.uid)
+        .orderBy("timestamp", "desc")
+        .get()
+        .then(snapshot => {
+          const container = document.getElementById("history");
+          if (snapshot.empty) {
+            container.innerHTML = "<p>尚無測驗紀錄。</p>";
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const div = document.createElement("div");
+            div.classList.add("record");
+
+            const wrongs = d.wrongAnswers || [];
+            const correctCount = d.total - wrongs.length;
+
+            div.innerHTML = `
+              <h2>${d.collection || "未命名題庫"}（${d.timestamp?.toDate().toLocaleString() || "—"}）</h2>
+              <p>✔️ 作對：${correctCount} 題 ／ ❌ 錯誤：${wrongs.length} 題 ／ 總題數：${d.total}</p>
+              <table>
+                <thead>
+                  <tr><th>題號</th><th>你的答案</th><th>正確答案</th><th>結果</th></tr>
+                </thead>
+                <tbody>
+                  ${wrongs.map(w => `
+                    <tr>
+                      <td>${w.id}</td>
+                      <td>${w.selected}</td>
+                      <td>${w.correct}</td>
+                      <td>❌</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+
+            container.appendChild(div);
+          });
+        })
+        .catch(err => {
+          console.error("讀取測驗紀錄失敗：", err);
+          alert("⚠ 無法載入測驗紀錄");
+        });
+    });
+  </script>
+</body>
+</html>

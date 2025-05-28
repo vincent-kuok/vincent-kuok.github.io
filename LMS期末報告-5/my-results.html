@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<title>我的作答紀錄</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    h2 { color: #004b75; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    a.button {
+      padding: 5px 10px;
+      background-color: #007acc;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+  </style>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<h2>📝 我的作答紀錄</h2>
+<table>
+<thead>
+<tr><th>題庫</th><th>得分</th><th>日期</th><th>操作</th></tr>
+</thead>
+<tbody id="resultTable"></tbody>
+</table>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdGb9s-Vx2oPC_WSpYNBVjEe5SY8rxAZQ",
+      authDomain: "tourbase-3e55f.firebaseapp.com",
+      projectId: "tourbase-3e55f"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return alert("請先登入才能查看作答紀錄");
+      db.collection("results")
+        .where("userId", "==", user.uid)
+        .orderBy("timestamp", "desc")
+        .get()
+        .then(snapshot => {
+          const tbody = document.getElementById("resultTable");
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${d.collection}</td>
+              <td>${d.score} / ${d.total}</td>
+              <td>${new Date(d.timestamp).toLocaleString()}</td>
+              <td><a href="result-detail.html?id=${doc.id}" class="button">查看詳情</a></td>
+            `;
+            tbody.appendChild(row);
+          });
+        });
+    });
+  </script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="header.js"></script>
+</body>
+</html>

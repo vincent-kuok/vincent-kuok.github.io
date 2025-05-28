@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>導遊考試學習系統</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    * { box-sizing: border-box; }
+    nav {
+      width: 240px;
+      background-color: #004b75;
+      color: white;
+      padding: 20px 10px;
+      flex-shrink: 0;
+    }
+    nav h3 {
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    nav a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      margin: 10px 0;
+      padding: 6px 12px;
+      border-radius: 4px;
+    }
+    nav a:hover {
+      background-color: #006fa6;
+    }
+    iframe {
+      flex-grow: 1;
+      height: 100vh;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="main-layout">
+    <nav>
+      <h3>主功能區</h3>
+      <a href="tourism_home_final_cleaned.html" target="content">首頁</a>
+      <a href="tourism_home_final_cleaned.html#main-schedule" target="content">評量時程表</a>
+      <a href="test-intro.html" target="content">導遊人員評量測驗介紹</a>
+      <h3>帳號管理</h3>
+      <a href="login/signup.html" target="content">註冊帳號</a>
+      <a href="login/login.html" target="content">登入系統</a>
+      <h3>模擬考題專區</h3>
+      <a href="quiz/index_grouped_by_year.html" target="content">歷年考題首頁</a>
+      <a href="form.html" target="content">留言版</a>
+      <h3>學習紀錄</h3>
+      <a href="my-results.html" target="content">我的作答紀錄</a>
+    </nav>
+    <iframe name="content" src="tourism_home_final_cleaned.html"></iframe>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdGb9s-Vx2oPC_WSpYNBVjEe5SY8rxAZQ",
+      authDomain: "tourbase-3e55f.firebaseapp.com",
+      projectId: "tourbase-3e55f"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script src="header.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>導遊考試學習系統 - 討論區</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: #f4f6fa;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .forum-container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 24px 18px;
+    }
+    .forum-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e3e6ee;
+      padding-bottom: 14px;
+      margin-bottom: 22px;
+    }
+    .forum-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #2a4365;
+      font-weight: 700;
+    }
+    .forum-header .fa-comments {
+      color: #3182ce;
+      font-size: 1.6rem;
+    }
+    .post-list {
+      margin-bottom: 30px;
+    }
+    .post-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 18px;
+      transition: box-shadow .2s;
+    }
+    .post-item:hover {
+      box-shadow: 0 2px 8px rgba(49,130,206,0.08);
+    }
+    .post-meta {
+      font-size: 0.95rem;
+      color: #718096;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .post-content {
+      font-size: 1.1rem;
+      color: #2d3748;
+      margin-bottom: 2px;
+    }
+    .forum-form {
+      background: #edf2f7;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+    .forum-form input, .forum-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .forum-form button {
+      background: #3182ce;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .forum-form button:hover {
+      background: #2563eb;
+    }
+    @media (max-width: 600px) {
+      .forum-container {
+        padding: 10px 2vw;
+        margin: 16px 0;
+      }
+      .forum-header h2 {
+        font-size: 1.1rem;
+      }
+      .post-content {
+        font-size: 1rem;
+      }
+      .forum-form button {
+        width: 100%;
+      }
+    }
+    .delete-btn {
+      margin-left: 10px;
+      font-size: 0.95rem;
+      background: #e53e3e;
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .delete-btn:hover {
+      background: #c53030;
+    }
+  </style>
+</head>
+<body>
+  <div class="forum-container">
+    <div class="forum-header">
+      <h2><i class="fa-solid fa-comments"></i> 留言討論區</h2>
+    </div>
+    <div class="post-list" id="postList">
+      <!-- 討論串會即時顯示在這裡 -->
+    </div>
+    <form class="forum-form" id="forumForm">
+      <input type="text" id="username" placeholder="你的暱稱" maxlength="12" required>
+      <textarea id="content" rows="3" placeholder="分享你的旅遊經驗或發問..." maxlength="300" required></textarea>
+      <button type="submit">發表留言</button>
+    </form>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0bD9s-Vx2OpC_WSpYNBVjEe5SY8rxAZQ",
+      authDomain: "tourbase-3e55f.firebaseapp.com",
+      projectId: "tourbase-3e55f",
+      storageBucket: "tourbase-3e55f.appspot.com",
+      messagingSenderId: "304157549555",
+      appId: "1:304157549555:web:30167c8e9b89f723e886",
+      measurementId: "G-9YFK0NLFJP"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Firestore collection name
+    const POSTS_COLLECTION = "forum_posts";
+
+    // 取得 Firestore 討論串
+    function fetchPosts() {
+      db.collection(POSTS_COLLECTION).orderBy("time", "desc").onSnapshot(snapshot => {
+        const posts = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          data.id = doc.id; // 加入 Firestore 文件 id
+          posts.push(data);
+        });
+        renderPosts(posts);
+      });
+    }
+
+    // 渲染討論串 (改為接收 posts 參數)
+    function renderPosts(posts) {
+      const postList = document.getElementById('postList');
+      postList.innerHTML = '';
+      posts.forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post-item';
+        let editBtn = '';
+        let deleteBtn = '';
+        // 只允許本地 sessionStorage 中的 id 編輯/刪除
+        if (post.localId && post.localId === sessionStorage.getItem('myLocalId')) {
+          deleteBtn = `<button class="delete-btn" data-id="${post.id}" style="float:right;background:#e53e3e;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;">刪除</button>`;
+          editBtn = `<button class="edit-btn" data-id="${post.id}" data-content="${encodeURIComponent(post.content)}" style="float:right;background:#38a169;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;margin-left:5px;">編輯</button>`;
+        }
+        div.innerHTML = `
+          <div class="post-meta">
+            <i class="fa-solid fa-user"></i> ${post.username}
+            <span style="margin-left:auto;"><i class="fa-regular fa-clock"></i> ${post.time}</span>
+            ${editBtn}
+            ${deleteBtn}
+          </div>
+          <div class="post-content">${post.content.replace(/\n/g,'<br>')}</div>
+        `;
+        postList.appendChild(div);
+      });
+      // 綁定刪除事件
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = function() {
+          if(confirm('確定要刪除這則留言嗎？')) {
+            db.collection(POSTS_COLLECTION).doc(this.dataset.id).delete();
+          }
+        }
+      });
+      // 綁定編輯事件
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.onclick = function() {
+          const postDiv = this.closest('.post-item');
+          const postId = this.dataset.id;
+          const oldContent = decodeURIComponent(this.dataset.content);
+          // 取代內容為 textarea
+          const contentDiv = postDiv.querySelector('.post-content');
+          contentDiv.innerHTML = `<textarea class='edit-area' style='width:100%;min-height:60px;'>${oldContent.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+            <div style='margin-top:8px;text-align:right;'>
+              <button class='save-edit-btn' style='background:#3182ce;color:#fff;border:none;padding:4px 14px;border-radius:4px;cursor:pointer;'>儲存</button>
+              <button class='cancel-edit-btn' style='background:#a0aec0;color:#fff;border:none;padding:4px 14px;border-radius:4px;cursor:pointer;margin-left:6px;'>取消</button>
+            </div>`;
+          // 儲存
+          contentDiv.querySelector('.save-edit-btn').onclick = function() {
+            const newContent = contentDiv.querySelector('.edit-area').value.trim();
+            if(newContent.length === 0) return alert('內容不能為空');
+            db.collection(POSTS_COLLECTION).doc(postId).update({
+              content: newContent
+            });
+          };
+          // 取消
+          contentDiv.querySelector('.cancel-edit-btn').onclick = function() {
+            contentDiv.innerHTML = oldContent.replace(/\n/g,'<br>');
+          };
+        }
+      });
+    }
+
+    // 時間格式化
+    function getNow() {
+      const d = new Date();
+      return d.getFullYear() + "-" +
+        String(d.getMonth()+1).padStart(2,'0') + "-" +
+        String(d.getDate()).padStart(2,'0') + " " +
+        String(d.getHours()).padStart(2,'0') + ":" +
+        String(d.getMinutes()).padStart(2,'0');
+    }
+
+    // 發表留言 (寫入 Firestore)
+    document.getElementById('forumForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim() || "匿名";
+      const content = document.getElementById('content').value.trim();
+      if(content.length === 0) return;
+      // 產生本地唯一 id
+      let myLocalId = sessionStorage.getItem('myLocalId');
+      if (!myLocalId) {
+        myLocalId = Math.random().toString(36).substr(2, 9) + Date.now();
+        sessionStorage.setItem('myLocalId', myLocalId);
+      }
+      db.collection(POSTS_COLLECTION).add({
+        username,
+        content,
+        time: getNow(),
+        localId: myLocalId
+      }).then(() => {
+        this.reset();
+      });
+    });
+
+    // 初始渲染 (改為 Firestore 監聽)
+    fetchPosts();
+  </script>
+</body>
+</html>

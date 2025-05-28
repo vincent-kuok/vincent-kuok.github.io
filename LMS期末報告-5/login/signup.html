@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>導遊考試學習系統</title>
+<link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+<header style="background-color: #005aa7; color: white; padding: 20px; text-align: center;">
+<h1>導遊考試學習系統</h1>
+</header>
+<div class="container">
+<h2>會員註冊</h2>
+<form onsubmit="signUp(event)">
+<div class="form-group">
+<label for="email">Email:</label>
+<input id="email" required="" type="email"/>
+</div>
+<div class="form-group">
+<label for="password">密碼:</label>
+<input id="password" required="" type="password"/>
+</div>
+<button class="btn" type="submit">註冊</button>
+</form>
+<p>已有帳號？<a href="login.html">點此登入</a></p>
+</div>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+    const auth = firebase.auth();
+    function signUp(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(() => {
+          alert("✅ 註冊成功，請重新登入");
+          window.location.href = "login.html";
+        })
+        .catch((error) => {
+          alert("❌ 註冊失敗：" + error.message);
+        });
+    }
+  </script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="header.js"></script>
+</body>
+</html>
